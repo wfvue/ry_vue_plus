@@ -1,7 +1,7 @@
 --- # 监控中心配置
 spring.boot.admin.client:
   # 增加客户端开关
-  enabled: true
+  enabled: false
   url: http://localhost:9090/admin
   instance:
     service-host-type: IP
@@ -47,9 +47,9 @@ spring:
           driverClassName: com.mysql.cj.jdbc.Driver
           # jdbc 所有参数配置参考 https://lionli.blog.csdn.net/article/details/122018562
           # rewriteBatchedStatements=true 批处理优化 大幅提升批量插入更新删除性能(对数据库有性能损耗 使用批量操作应考虑性能问题)
-          url: jdbc:mysql://localhost:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
-          username: root
-          password: root
+          url: jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/ry-vue-plus?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
+          username: mTJZHN24cKd1e1C.root
+          password: QV0iRejRZvW4ifLm
 #        # 从库数据源
 #        slave:
 #          lazy: true
@@ -96,17 +96,17 @@ spring:
 spring.data:
   redis:
     # 地址
-    host: localhost
+    host: dear-gull-33806.upstash.io
     # 端口，默认为6379
     port: 6379
     # 数据库索引
     database: 0
     # redis 密码必须配置
-    password: ruoyi123
+    password: AYQOAAIncDJlMGQ1OTEzZTUzMzU0ZTVlOTA2OWQ3Y2VmZmFjM2FlYXAyMzM4MDY
     # 连接超时时间
     timeout: 10s
     # 是否开启ssl
-    ssl.enabled: false
+    ssl.enabled: true
 
 # redisson 配置
 redisson:
