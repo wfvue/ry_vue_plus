@@ -48,6 +48,8 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import cn.hutool.core.date.DateUtil;
+
 /**
  * 业务 服务层实现
  *
@@ -97,15 +99,33 @@ public class GenTableServiceImpl implements IGenTableService {
 
     private QueryWrapper<GenTable> buildGenTableQueryWrapper(GenTable genTable) {
         Map<String, Object> params = genTable.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         QueryWrapper<GenTable> wrapper = Wrappers.query();
         wrapper
             .eq(StringUtils.isNotEmpty(genTable.getDataName()), "data_name", genTable.getDataName())
             .like(StringUtils.isNotBlank(genTable.getTableName()), "lower(table_name)", StringUtils.lowerCase(genTable.getTableName()))
             .like(StringUtils.isNotBlank(genTable.getTableComment()), "lower(table_comment)", StringUtils.lowerCase(genTable.getTableComment()))
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                "create_time", params.get("beginTime"), params.get("endTime"))
+            .between(beginTime != null && endTime != null,
+                "create_time", beginTime, endTime)
             .orderByDesc("update_time");
         return wrapper;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

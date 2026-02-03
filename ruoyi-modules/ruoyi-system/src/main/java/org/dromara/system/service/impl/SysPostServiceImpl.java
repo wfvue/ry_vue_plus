@@ -25,8 +25,11 @@ import org.dromara.system.service.ISysPostService;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import cn.hutool.core.date.DateUtil;
 
 /**
  * 岗位信息 服务层处理
@@ -84,13 +87,15 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
      */
     private LambdaQueryWrapper<SysPost> buildQueryWrapper(SysPostBo bo) {
         Map<String, Object> params = bo.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         LambdaQueryWrapper<SysPost> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.isNotBlank(bo.getPostCode()), SysPost::getPostCode, bo.getPostCode())
             .like(StringUtils.isNotBlank(bo.getPostCategory()), SysPost::getPostCategory, bo.getPostCategory())
             .like(StringUtils.isNotBlank(bo.getPostName()), SysPost::getPostName, bo.getPostName())
             .eq(StringUtils.isNotBlank(bo.getStatus()), SysPost::getStatus, bo.getStatus())
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                SysPost::getCreateTime, params.get("beginTime"), params.get("endTime"))
+            .between(beginTime != null && endTime != null,
+                SysPost::getCreateTime, beginTime, endTime)
             .orderByAsc(SysPost::getPostSort);
         if (ObjectUtil.isNotNull(bo.getDeptId())) {
             //优先单部门搜索
@@ -103,6 +108,22 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
             });
         }
         return wrapper;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

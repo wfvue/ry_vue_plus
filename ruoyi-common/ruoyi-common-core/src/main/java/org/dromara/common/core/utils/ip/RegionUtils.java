@@ -55,8 +55,6 @@ public class RegionUtils {
                 .setCachePolicy(Config.BufferCache)
                 //.setXdbFile(v4TempXdb)
                 .setXdbInputStream(v4InputStream)
-                //
-                .setCacheSliceBytes(DEFAULT_CACHE_SLICE_BYTES)
                 .asV4();
 
             // IPv6配置
@@ -69,7 +67,6 @@ public class RegionUtils {
                     .setCachePolicy(Config.BufferCache)
                     //.setXdbFile(v6TempXdb)
                     .setXdbInputStream(v6XdbInputStream)
-                    .setCacheSliceBytes(DEFAULT_CACHE_SLICE_BYTES)
                     .asV6();
             }
 

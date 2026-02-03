@@ -36,6 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import cn.hutool.core.date.DateUtil;
+
 /**
  * 字典 业务层处理
  *
@@ -76,13 +78,31 @@ public class SysDictTypeServiceImpl implements ISysDictTypeService, DictService 
 
     private LambdaQueryWrapper<SysDictType> buildQueryWrapper(SysDictTypeBo bo) {
         Map<String, Object> params = bo.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         LambdaQueryWrapper<SysDictType> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(bo.getDictName()), SysDictType::getDictName, bo.getDictName());
         lqw.like(StringUtils.isNotBlank(bo.getDictType()), SysDictType::getDictType, bo.getDictType());
-        lqw.between(params.get("beginTime") != null && params.get("endTime") != null,
-            SysDictType::getCreateTime, params.get("beginTime"), params.get("endTime"));
+        lqw.between(beginTime != null && endTime != null,
+            SysDictType::getCreateTime, beginTime, endTime);
         lqw.orderByAsc(SysDictType::getDictId);
         return lqw;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

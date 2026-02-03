@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import cn.hutool.core.date.DateUtil;
+
 /**
  * 系统访问日志情况信息 服务层处理
  *
@@ -118,12 +120,14 @@ public class SysLogininforServiceImpl implements ISysLogininforService {
     @Override
     public TableDataInfo<SysLogininforVo> selectPageLogininforList(SysLogininforBo logininfor, PageQuery pageQuery) {
         Map<String, Object> params = logininfor.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         LambdaQueryWrapper<SysLogininfor> lqw = new LambdaQueryWrapper<SysLogininfor>()
             .like(StringUtils.isNotBlank(logininfor.getIpaddr()), SysLogininfor::getIpaddr, logininfor.getIpaddr())
             .eq(StringUtils.isNotBlank(logininfor.getStatus()), SysLogininfor::getStatus, logininfor.getStatus())
             .like(StringUtils.isNotBlank(logininfor.getUserName()), SysLogininfor::getUserName, logininfor.getUserName())
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                SysLogininfor::getLoginTime, params.get("beginTime"), params.get("endTime"));
+            .between(beginTime != null && endTime != null,
+                SysLogininfor::getLoginTime, beginTime, endTime);
         if (StringUtils.isBlank(pageQuery.getOrderByColumn())) {
             lqw.orderByDesc(SysLogininfor::getInfoId);
         }
@@ -152,13 +156,31 @@ public class SysLogininforServiceImpl implements ISysLogininforService {
     @Override
     public List<SysLogininforVo> selectLogininforList(SysLogininforBo logininfor) {
         Map<String, Object> params = logininfor.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         return baseMapper.selectVoList(new LambdaQueryWrapper<SysLogininfor>()
             .like(StringUtils.isNotBlank(logininfor.getIpaddr()), SysLogininfor::getIpaddr, logininfor.getIpaddr())
             .eq(StringUtils.isNotBlank(logininfor.getStatus()), SysLogininfor::getStatus, logininfor.getStatus())
             .like(StringUtils.isNotBlank(logininfor.getUserName()), SysLogininfor::getUserName, logininfor.getUserName())
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                SysLogininfor::getLoginTime, params.get("beginTime"), params.get("endTime"))
+            .between(beginTime != null && endTime != null,
+                SysLogininfor::getLoginTime, beginTime, endTime)
             .orderByDesc(SysLogininfor::getInfoId));
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

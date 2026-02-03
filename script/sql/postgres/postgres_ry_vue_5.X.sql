@@ -1,7 +1,7 @@
 -- ----------------------------
 -- 第三方平台授权表
 -- ----------------------------
-create table sys_social
+create table if not exists sys_social
 (
     id                 int8             not null,
     user_id            int8             not null,
@@ -1391,8 +1391,9 @@ INSERT INTO test_tree VALUES (12, '000000', 10, 108, 3, '子节点88', 0, 103, n
 INSERT INTO test_tree VALUES (13, '000000', 10, 108, 3, '子节点99', 0, 103, now(), 1, NULL, NULL, 0);
 
 -- 字符串自动转时间 避免框架时间查询报错问题
-create or replace function cast_varchar_to_timestamp(varchar) returns timestamptz as $$
-select to_timestamp($1, 'yyyy-mm-dd hh24:mi:ss');
-$$ language sql strict ;
-
-create cast (varchar as timestamptz) with function cast_varchar_to_timestamp as IMPLICIT;
+-- 注意：此操作需要超级用户权限执行
+-- 如需使用，请以超级用户身份手动执行以下语句：
+-- create or replace function cast_varchar_to_timestamp(varchar) returns timestamptz as $$
+-- select to_timestamp($1, 'yyyy-mm-dd hh24:mi:ss');
+-- $$ language sql strict ;
+-- create cast (varchar as timestamptz) with function cast_varchar_to_timestamp as IMPLICIT;

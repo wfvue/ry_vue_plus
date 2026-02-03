@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import cn.hutool.core.date.DateUtil;
+
 /**
  * 操作日志 服务层处理
  *
@@ -68,6 +70,8 @@ public class SysOperLogServiceImpl implements ISysOperLogService {
 
     private LambdaQueryWrapper<SysOperLog> buildQueryWrapper(SysOperLogBo operLog) {
         Map<String, Object> params = operLog.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         return new LambdaQueryWrapper<SysOperLog>()
             .like(StringUtils.isNotBlank(operLog.getOperIp()), SysOperLog::getOperIp, operLog.getOperIp())
             .like(StringUtils.isNotBlank(operLog.getTitle()), SysOperLog::getTitle, operLog.getTitle())
@@ -81,8 +85,24 @@ public class SysOperLogServiceImpl implements ISysOperLogService {
             .eq(operLog.getStatus() != null,
                 SysOperLog::getStatus, operLog.getStatus())
             .like(StringUtils.isNotBlank(operLog.getOperName()), SysOperLog::getOperName, operLog.getOperName())
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                SysOperLog::getOperTime, params.get("beginTime"), params.get("endTime"));
+            .between(beginTime != null && endTime != null,
+                SysOperLog::getOperTime, beginTime, endTime);
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

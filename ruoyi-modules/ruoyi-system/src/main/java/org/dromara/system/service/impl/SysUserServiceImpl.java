@@ -39,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import cn.hutool.core.date.DateUtil;
+
 /**
  * 用户 业务层处理
  *
@@ -71,14 +73,16 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
     @Override
     public List<SysUserExportVo> selectUserExportList(SysUserBo user) {
         Map<String, Object> params = user.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         QueryWrapper<SysUser> wrapper = Wrappers.query();
         wrapper.eq("u.del_flag", SystemConstants.NORMAL)
             .like(StringUtils.isNotBlank(user.getUserName()), "u.user_name", user.getUserName())
             .like(StringUtils.isNotBlank(user.getNickName()), "u.nick_name", user.getNickName())
             .eq(StringUtils.isNotBlank(user.getStatus()), "u.status", user.getStatus())
             .like(StringUtils.isNotBlank(user.getPhonenumber()), "u.phonenumber", user.getPhonenumber())
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                "u.create_time", params.get("beginTime"), params.get("endTime"))
+            .between(beginTime != null && endTime != null,
+                "u.create_time", beginTime, endTime)
             .and(ObjectUtil.isNotNull(user.getDeptId()), w -> {
                 List<Long> deptIds = deptMapper.selectDeptAndChildById(user.getDeptId());
                 w.in("u.dept_id", deptIds);
@@ -88,6 +92,8 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
 
     private Wrapper<SysUser> buildQueryWrapper(SysUserBo user) {
         Map<String, Object> params = user.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getDelFlag, SystemConstants.NORMAL)
             .eq(ObjectUtil.isNotNull(user.getUserId()), SysUser::getUserId, user.getUserId())
@@ -96,8 +102,8 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
             .like(StringUtils.isNotBlank(user.getNickName()), SysUser::getNickName, user.getNickName())
             .eq(StringUtils.isNotBlank(user.getStatus()), SysUser::getStatus, user.getStatus())
             .like(StringUtils.isNotBlank(user.getPhonenumber()), SysUser::getPhonenumber, user.getPhonenumber())
-            .between(params.get("beginTime") != null && params.get("endTime") != null,
-                SysUser::getCreateTime, params.get("beginTime"), params.get("endTime"))
+            .between(beginTime != null && endTime != null,
+                SysUser::getCreateTime, beginTime, endTime)
             .and(ObjectUtil.isNotNull(user.getDeptId()), w -> {
                 List<Long> ids = deptMapper.selectDeptAndChildById(user.getDeptId());
                 w.in(SysUser::getDeptId, ids);
@@ -106,6 +112,22 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
             wrapper.notIn(SysUser::getUserId, StringUtils.splitTo(user.getExcludeUserIds(), Convert::toLong));
         }
         return wrapper;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

@@ -38,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import cn.hutool.core.date.DateUtil;
+
 /**
  * 部门管理 服务实现
  *
@@ -91,6 +93,8 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
 
     private LambdaQueryWrapper<SysDept> buildQueryWrapper(SysDeptBo bo) {
         Map<String, Object> params = bo.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         LambdaQueryWrapper<SysDept> lqw = Wrappers.lambdaQuery();
         lqw.eq(SysDept::getDelFlag, SystemConstants.NORMAL);
         lqw.eq(ObjectUtil.isNotNull(bo.getDeptId()), SysDept::getDeptId, bo.getDeptId());
@@ -98,8 +102,8 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
         lqw.like(StringUtils.isNotBlank(bo.getDeptName()), SysDept::getDeptName, bo.getDeptName());
         lqw.like(StringUtils.isNotBlank(bo.getDeptCategory()), SysDept::getDeptCategory, bo.getDeptCategory());
         lqw.eq(StringUtils.isNotBlank(bo.getStatus()), SysDept::getStatus, bo.getStatus());
-        lqw.between(params.get("beginTime") != null && params.get("endTime") != null,
-            SysDept::getCreateTime, params.get("beginTime"), params.get("endTime"));
+        lqw.between(beginTime != null && endTime != null,
+            SysDept::getCreateTime, beginTime, endTime);
         lqw.orderByAsc(SysDept::getAncestors);
         lqw.orderByAsc(SysDept::getParentId);
         lqw.orderByAsc(SysDept::getOrderNum);
@@ -112,6 +116,22 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
             });
         }
         return lqw;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

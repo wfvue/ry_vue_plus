@@ -65,6 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import cn.hutool.core.date.DateUtil;
+
 import static org.dromara.workflow.common.constant.FlowConstant.*;
 
 /**
@@ -449,6 +451,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
 
     private QueryWrapper<FlowTaskBo> buildQueryWrapper(FlowTaskBo flowTaskBo) {
         Map<String, Object> params = flowTaskBo.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         QueryWrapper<FlowTaskBo> wrapper = Wrappers.query();
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getNodeName()), "t.node_name", flowTaskBo.getNodeName());
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
@@ -459,10 +463,26 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
             wrapper.in("t.category", StreamUtils.toList(categoryIds, Convert::toStr));
         }
-        wrapper.between(params.get("beginTime") != null && params.get("endTime") != null,
-            "t.create_time", params.get("beginTime"), params.get("endTime"));
+        wrapper.between(beginTime != null && endTime != null,
+            "t.create_time", beginTime, endTime);
         wrapper.orderByDesc("t.create_time").orderByDesc("t.update_time");
         return wrapper;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**

@@ -29,8 +29,11 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import cn.hutool.core.date.DateUtil;
 
 /**
  * 参数配置 服务层实现
@@ -110,14 +113,32 @@ public class SysConfigServiceImpl implements ISysConfigService, ConfigService {
 
     private LambdaQueryWrapper<SysConfig> buildQueryWrapper(SysConfigBo bo) {
         Map<String, Object> params = bo.getParams();
+        Date beginTime = parseDate(params.get("beginTime"));
+        Date endTime = parseDate(params.get("endTime"));
         LambdaQueryWrapper<SysConfig> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(bo.getConfigName()), SysConfig::getConfigName, bo.getConfigName());
         lqw.eq(StringUtils.isNotBlank(bo.getConfigType()), SysConfig::getConfigType, bo.getConfigType());
         lqw.like(StringUtils.isNotBlank(bo.getConfigKey()), SysConfig::getConfigKey, bo.getConfigKey());
-        lqw.between(params.get("beginTime") != null && params.get("endTime") != null,
-            SysConfig::getCreateTime, params.get("beginTime"), params.get("endTime"));
+        lqw.between(beginTime != null && endTime != null,
+            SysConfig::getCreateTime, beginTime, endTime);
         lqw.orderByAsc(SysConfig::getConfigId);
         return lqw;
+    }
+
+    /**
+     * 解析日期对象
+     *
+     * @param obj 日期对象（Date 或 String）
+     * @return Date 对象
+     */
+    private Date parseDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
+        return DateUtil.parse(obj.toString());
     }
 
     /**
